@@ -1,0 +1,116 @@
+{
+  "info": {
+    "name": "NestJS Authentication API",
+    "description": "Requests for registration, email verification, login, token rotation, logout, and password reset.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "email", "value": "person@example.net" },
+    { "key": "password", "value": "replace-with-a-long-passphrase" },
+    { "key": "captchaToken", "value": "replace-with-a-real-recaptcha-token" },
+    { "key": "verificationToken", "value": "paste-token-from-email-link" },
+    { "key": "resetToken", "value": "paste-token-from-reset-email" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"captchaToken\": \"{{captchaToken}}\"\n}" },
+        "url": "{{baseUrl}}/auth/register"
+      }
+    },
+    {
+      "name": "Confirm email",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}" },
+        "url": "{{baseUrl}}/auth/confirm-email"
+      }
+    },
+    {
+      "name": "Login",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "if (pm.response.code === 200) {",
+            "  const tokens = pm.response.json();",
+            "  pm.collectionVariables.set('accessToken', tokens.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', tokens.refreshToken);",
+            "}"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"captchaToken\": \"{{captchaToken}}\"\n}" },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "Current profile",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+        "method": "GET",
+        "url": "{{baseUrl}}/users/me"
+      }
+    },
+    {
+      "name": "Refresh tokens",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "if (pm.response.code === 200) {",
+            "  const tokens = pm.response.json();",
+            "  pm.collectionVariables.set('accessToken', tokens.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', tokens.refreshToken);",
+            "}"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+        "url": "{{baseUrl}}/auth/refresh"
+      }
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+        "url": "{{baseUrl}}/auth/logout"
+      }
+    },
+    {
+      "name": "Forgot password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
+        "url": "{{baseUrl}}/auth/forgot-password"
+      }
+    },
+    {
+      "name": "Reset password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"replace-with-another-long-passphrase\"\n}" },
+        "url": "{{baseUrl}}/auth/reset-password"
+      }
+    }
+  ]
+}
